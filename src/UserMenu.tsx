@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import ReactPlayer from "react-player";
 import { Coffee, CupSoda, CakeSlice, Utensils, ChevronUp, ChevronRight, ChevronLeft, Volume2, VolumeX, Sparkles, IceCream, Instagram, Facebook, MessageCircle, MapPin } from "lucide-react";
 import { MenuCategory, menuData as localMenuData } from "./data";
 import { settingsData as localSettingsData } from "./settingsData";
@@ -18,7 +19,7 @@ export default function UserMenu() {
   const [selectedCategory, setSelectedCategory] = useState<MenuCategory | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   useEffect(() => {
     fetch('/api/menu')
@@ -33,30 +34,30 @@ export default function UserMenu() {
       });
   }, []);
 
-  // Handle auto-playing music once splash disappears
+  // Handle auto-playing music once user interacts
   useEffect(() => {
-    if (!showSplash && audioRef.current && !isMusicPlaying) {
-      const playOnInteract = () => {
-         if (audioRef.current) {
-            audioRef.current.play().then(() => setIsMusicPlaying(true)).catch(() => {});
-         }
-         document.removeEventListener('click', playOnInteract);
-         document.removeEventListener('scroll', playOnInteract);
-         document.removeEventListener('touchstart', playOnInteract);
-      };
-      
-      const playPromise = audioRef.current.play();
-      if (playPromise !== undefined) {
-         playPromise.then(() => {
-            setIsMusicPlaying(true);
-         }).catch(() => {
-            document.addEventListener('click', playOnInteract);
-            document.addEventListener('scroll', playOnInteract);
-            document.addEventListener('touchstart', playOnInteract);
-         });
+    const handleInteraction = () => {
+      if (!hasInteracted) {
+        setHasInteracted(true);
+        setIsMusicPlaying(true);
       }
+      document.removeEventListener("click", handleInteraction);
+      document.removeEventListener("scroll", handleInteraction);
+      document.removeEventListener("touchstart", handleInteraction);
+    };
+
+    if (!showSplash && !hasInteracted) {
+      document.addEventListener("click", handleInteraction);
+      document.addEventListener("scroll", handleInteraction);
+      document.addEventListener("touchstart", handleInteraction);
     }
-  }, [showSplash]);
+
+    return () => {
+      document.removeEventListener("click", handleInteraction);
+      document.removeEventListener("scroll", handleInteraction);
+      document.removeEventListener("touchstart", handleInteraction);
+    };
+  }, [showSplash, hasInteracted]);
 
   // Auto-hide splash after 5 seconds
   useEffect(() => {
@@ -69,13 +70,8 @@ export default function UserMenu() {
   }, [showSplash]);
 
   const toggleMusic = () => {
-    if (!audioRef.current) return;
-    if (isMusicPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play().catch(() => {});
-    }
     setIsMusicPlaying(!isMusicPlaying);
+    setHasInteracted(true);
   };
 
   useEffect(() => {
@@ -92,12 +88,30 @@ export default function UserMenu() {
 
   return (
     <>
-      <audio
-        ref={audioRef}
-        src="https://www.image2url.com/r2/default/audio/1779605277020-c303c35e-9a3a-48b9-9632-7122a3d4f357.mp3"
-        loop
-        preload="auto"
-      />
+      <div className="fixed top-[-100px] left-[-100px] w-10 h-10 pointer-events-none opacity-0 overflow-hidden z-[-1]">
+        <ReactPlayer
+          url="https://www.youtube.com/watch?v=b-du-wPG0v8"
+          playing={isMusicPlaying}
+          loop={true}
+          volume={1}
+          width="100%"
+          height="100%"
+          playsinline
+          config={{
+            youtube: {
+              playerVars: { 
+                autoplay: 1, 
+                controls: 0,
+                modestbranding: 1,
+                showinfo: 0,
+                rel: 0
+              }
+            }
+          }}
+          onPlay={() => setIsMusicPlaying(true)}
+          onPause={() => setIsMusicPlaying(false)}
+        />
+      </div>
       <AnimatePresence>
         {showSplash && (
           <motion.div
