@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Edit2, Trash2, Save, Image as ImageIcon, LogOut, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Edit2, Trash2, Save, Image as ImageIcon, LogOut, ChevronDown, ChevronUp, Search, Sparkles, X, Loader2 } from "lucide-react";
 import { MenuCategory, MenuItem, menuData as localMenuData } from "./data";
 
 export default function AdminDashboard() {
@@ -13,6 +13,40 @@ export default function AdminDashboard() {
 
   // For UI expansion state
   const [expandedCats, setExpandedCats] = useState<Record<string, boolean>>({});
+
+  const [imageModal, setImageModal] = useState<{isOpen: boolean, catId: string, itemId?: string, query: string, images: string[], loading: boolean}>({
+    isOpen: false, catId: '', query: '', images: [], loading: false
+  });
+
+  const openImageModal = (catId: string, itemId: string | undefined, defaultQuery: string = '') => {
+    setImageModal({ isOpen: true, catId, itemId, query: defaultQuery, images: [], loading: false });
+  };
+
+  const closeImageModal = () => setImageModal(prev => ({ ...prev, isOpen: false }));
+
+  const handleImageSearch = async () => {
+    if (!imageModal.query) return;
+    setImageModal(prev => ({ ...prev, loading: true, images: [] }));
+    try {
+      const res = await fetch(`/api/search-images?q=${encodeURIComponent(imageModal.query)}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const data = await res.json();
+      setImageModal(prev => ({ ...prev, loading: false, images: data.images || [] }));
+    } catch (err) {
+      setImageModal(prev => ({ ...prev, loading: false }));
+      alert("Error searching images");
+    }
+  };
+
+  const selectImage = (url: string) => {
+    if (imageModal.itemId) {
+      updateItem(imageModal.catId, imageModal.itemId, { image: url });
+    } else {
+      updateCategory(imageModal.catId, { image: url });
+    }
+    closeImageModal();
+  };
 
   useEffect(() => {
     fetch('/api/menu')
@@ -280,7 +314,7 @@ export default function AdminDashboard() {
                       className="p-2 border rounded-lg flex-1 text-left"
                       dir="ltr"
                     />
-                    <label className="bg-gray-200 p-2 rounded-lg cursor-pointer hover:bg-gray-300 transition-colors">
+                    <label className="bg-gray-200 p-2 rounded-lg cursor-pointer hover:bg-gray-300 transition-colors" title="رفع صورة">
                       <ImageIcon size={20} />
                       <input
                         type="file"
@@ -289,6 +323,9 @@ export default function AdminDashboard() {
                         onChange={(e) => handleFileUpload(e, (url) => updateCategory(cat.id, { image: url }))}
                       />
                     </label>
+                    <button onClick={() => openImageModal(cat.id, undefined, cat.title + ' dessert food ice cream')} className="bg-blue-50 text-blue-600 p-2 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors" title="بحث عن صورة">
+                      <Search size={20} />
+                    </button>
                   </div>
                 </div>
 
@@ -379,7 +416,10 @@ export default function AdminDashboard() {
                              className="text-xs text-left p-1 border rounded w-full"
                              dir="ltr"
                            />
-                           <label className="flex items-center gap-1 cursor-pointer">
+                           <button onClick={(e) => { e.stopPropagation(); openImageModal(cat.id, item.id, item.name + ' dessert ice cream'); }} className="p-1 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 shrink-0" title="بحث">
+                             <Search size={16} />
+                           </button>
+                           <label className="flex items-center gap-1 cursor-pointer mr-2 shrink-0">
                              <input 
                                type="checkbox" 
                                checked={item.isPopular || false} 
@@ -408,6 +448,76 @@ export default function AdminDashboard() {
           ))}
         </div>
       </div>
+
+      {imageModal.isOpen && (
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h2 className="text-xl font-bold flex items-center gap-2 text-[#5E2D14]">
+                <Search className="text-gray-500" />
+                البحث عن صورة عبر الإنترنت
+              </h2>
+              <button onClick={closeImageModal} className="text-gray-400 hover:text-red-500 transition-colors p-1 bg-white rounded-full border">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-4 border-b border-gray-100">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={imageModal.query}
+                  onChange={e => setImageModal(prev => ({...prev, query: e.target.value}))}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                       handleImageSearch();
+                    }
+                  }}
+                  className="flex-1 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                  placeholder="جرب البحث بالانجليزية لصور أفضل (مثال: crepe, ice cream)"
+                  dir="ltr"
+                />
+                <button
+                  onClick={handleImageSearch}
+                  disabled={imageModal.loading || !imageModal.query}
+                  className="bg-[#D4AF37] text-white px-6 rounded-lg font-bold hover:bg-[#AA8B2C] disabled:opacity-50 transition-colors min-w-[100px] flex items-center justify-center"
+                >
+                  {imageModal.loading ? <Loader2 className="animate-spin" /> : 'بحث'}
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-4 overflow-y-auto flex-1 bg-gray-50 max-h-[50vh]">
+               {imageModal.loading ? (
+                 <div className="flex flex-col items-center justify-center h-48 gap-4 text-gray-500">
+                   <Loader2 size={32} className="animate-spin text-[#D4AF37]" />
+                   <p>جاري البحث...</p>
+                 </div>
+               ) : imageModal.images.length > 0 ? (
+                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                   {imageModal.images.map((url, i) => (
+                     <button
+                       key={i}
+                       onClick={() => selectImage(url)}
+                       className="group relative rounded-xl overflow-hidden aspect-square border-2 border-transparent hover:border-[#D4AF37] hover:shadow-lg transition-all"
+                     >
+                       <img src={url} className="w-full h-full object-cover" />
+                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                         <span className="text-white font-bold bg-[#D4AF37] px-3 py-1 rounded-full text-sm">اختيار</span>
+                       </div>
+                     </button>
+                   ))}
+                 </div>
+               ) : (
+                 <div className="text-center text-gray-400 py-12 flex flex-col items-center gap-3">
+                   <Search size={48} className="opacity-20" />
+                   <p>اكتب كلمة البحث واضغط على الزر لرؤية النتائج هنا</p>
+                 </div>
+               )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

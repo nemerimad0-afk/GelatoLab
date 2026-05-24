@@ -142,6 +142,36 @@ app.post('/api/upload', authenticateToken, upload.single('file'), (req, res) => 
   res.json({ url: `/uploads/${filename}` });
 });
 
+import * as cheerio from 'cheerio';
+
+app.get('/api/search-images', authenticateToken, async (req, res) => {
+  try {
+    const query = req.query.q as string;
+    if (!query) return res.json([]);
+    
+    const url = `https://www.bing.com/images/search?q=${encodeURIComponent(query)}`;
+    const fetchRes = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' } });
+    const html = await fetchRes.text();
+    const $ = cheerio.load(html);
+    const images: string[] = [];
+    
+    $('a.iusc').each((i, el) => {
+      const m = $(el).attr('m');
+      if (m) {
+        try {
+          const data = JSON.parse(m);
+          if (data.murl) images.push(data.murl);
+        } catch(e) {}
+      }
+    });
+    
+    res.json({ images: images.slice(0, 20) });
+  } catch (err) {
+    console.error("Search Error:", err);
+    res.status(500).json({ error: "Failed to fetch images" });
+  }
+});
+
 async function startServer() {
   app.use('/uploads', express.static(UPLOADS_DIR));
 
