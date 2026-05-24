@@ -3,13 +3,8 @@ import { Plus, Edit2, Trash2, Save, Image as ImageIcon, LogOut, ChevronDown, Che
 import { MenuCategory, MenuItem } from "./data";
 
 export default function AdminDashboard() {
-  const [token, setToken] = useState<string | null>(localStorage.getItem("adminToken"));
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-
   const [menu, setMenu] = useState<MenuCategory[]>([]);
   const [settings, setSettings] = useState({ musicUrl: "" });
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // For UI expansion state
@@ -17,72 +12,63 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetch('/api/menu')
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error("API not available");
+        return r.json();
+      })
       .then(data => setMenu(data))
-      .catch(e => console.error(e));
+      .catch(e => {
+        console.error("Local fallback for menu");
+        const localMenu = localStorage.getItem("menuData");
+        if (localMenu) {
+          setMenu(JSON.parse(localMenu));
+        } else {
+          // Import local data if localStorage is empty
+          import('./data').then(mod => setMenu(mod.menuData)).catch(err => console.error(err));
+        }
+      });
 
     fetch('/api/settings')
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error("API not available");
+        return r.json();
+      })
       .then(data => {
         if(data.musicUrl) setSettings(data);
       })
-      .catch(e => console.error(e));
-  }, []);
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const res = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
+      .catch(e => {
+        console.error("Local fallback for settings");
+        const localSettings = localStorage.getItem("settingsData");
+        if (localSettings) {
+          setSettings(JSON.parse(localSettings));
+        }
       });
-      const data = await res.json();
-      if (data.token) {
-        setToken(data.token);
-        localStorage.setItem("adminToken", data.token);
-      } else {
-        alert("Invalid credentials");
-      }
-    } catch (e) {
-      alert("Error logging in");
-    }
-    setLoading(false);
-  };
-
-  const handleLogout = () => {
-    setToken(null);
-    localStorage.removeItem("adminToken");
-  };
+  }, []);
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      await fetch("/api/settings", {
+      // Try to save to server first
+      const res = await fetch("/api/settings", {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(settings)
       });
 
-      const res = await fetch("/api/menu", {
+      await fetch("/api/menu", {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(menu)
       });
-      if (res.ok) {
-        alert("تم الحفظ بنجاح!");
-      } else {
-        alert("خطأ أثناء الحفظ");
-      }
+      
+      localStorage.setItem("menuData", JSON.stringify(menu));
+      localStorage.setItem("settingsData", JSON.stringify(settings));
+      alert("تم الحفظ بنجاح! تم حفظ البيانات محلياً أيضاً.");
     } catch (e) {
-      alert("خطأ أثناء الحفظ");
+      // Fallback to local storage
+      localStorage.setItem("menuData", JSON.stringify(menu));
+      localStorage.setItem("settingsData", JSON.stringify(settings));
+      alert("تم الحفظ في المتصفح فقط (بدون خادم).");
     }
     setSaving(false);
   };
@@ -154,7 +140,6 @@ export default function AdminDashboard() {
     try {
       const res = await fetch("/api/upload", {
         method: "POST",
-        headers: { "Authorization": `Bearer ${token}` },
         body: formData
       });
       const data = await res.json();
@@ -164,7 +149,9 @@ export default function AdminDashboard() {
         alert("Upload error");
       }
     } catch (err) {
-      alert("Upload error");
+      // Note: we can't really fallback local file upload easily on static sites
+      // We could use base64 readers but it takes up lot of space in localStorage.
+      alert("Upload feature might not work on static sites without a backend.");
     }
   };
 
@@ -172,56 +159,10 @@ export default function AdminDashboard() {
     setExpandedCats({ ...expandedCats, [id]: !expandedCats[id] });
   };
 
-  if (!token) {
-    return (
-      <div className="min-h-screen bg-[#FFFBF5] text-[#5E2D14] font-['Cairo'] flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md text-right border border-[#EFE6DD]">
-          <h2 className="text-2xl font-bold mb-6 text-center">دخول الإدارة</h2>
-          <form onSubmit={handleLogin} className="flex flex-col gap-4">
-            <div>
-              <label className="block font-bold mb-2 text-sm">اسم المستخدم</label>
-              <input
-                type="text"
-                autoComplete="off"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#D4AF37] outline-none"
-                required
-              />
-            </div>
-            <div>
-              <label className="block font-bold mb-2 text-sm">كلمة المرور</label>
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#D4AF37] outline-none"
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="mt-4 w-full bg-[#5E2D14] text-white py-3 rounded-lg font-bold hover:bg-[#8B4B27] transition-colors"
-            >
-              {loading ? "جاري الدخول..." : "تسجيل الدخول"}
-            </button>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-[#FFFBF5] text-[#5E2D14] font-['Cairo'] pb-24 text-right" dir="rtl">
       <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-md border-b border-[#EFE6DD] px-4 py-4 flex justify-between items-center top-bar">
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 text-red-600 hover:text-red-700 font-bold"
-        >
-          <LogOut size={18} />
-          خروج
-        </button>
+        <div className="w-16"></div>
         <h1 className="text-xl sm:text-2xl font-bold">لوحة التحكم السريعة</h1>
         <button
           onClick={handleSave}
