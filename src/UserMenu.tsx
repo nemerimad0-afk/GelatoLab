@@ -370,20 +370,8 @@ export default function UserMenu() {
                 <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1542840410-3092f99611a3?auto=format&fit=crop&q=80&w=800')] opacity-5 bg-center bg-cover mix-blend-overlay" />
                 
                 <div className="relative z-10 max-w-4xl mx-auto">
-                  <p className="text-[#D4AF37] text-sm sm:text-base font-bold mb-2 tracking-wider">
-                    تواصل معنا واعرف فروعنا
-                  </p>
-                  <h2 className="text-3xl sm:text-5xl font-black text-white mb-8 drop-shadow-md">
-                    معلومات التواصل
-                    <div className="h-1 w-24 bg-[#D4AF37] mx-auto mt-4 rounded-full" />
-                  </h2>
-
-                  <div className="flex justify-center mb-10">
-                    <ChevronUp className="text-white/30" size={32} />
-                  </div>
-
                   <h3 className="text-[#D4AF37] text-xl sm:text-2xl font-bold mb-6">
-                    تابعنا على مواقع التواصل
+                    تابعنا على مواقع التواصل الاجتماعي
                   </h3>
 
                   <div className="flex justify-center items-center gap-4 sm:gap-6 mb-8" dir="ltr">
@@ -404,27 +392,6 @@ export default function UserMenu() {
                       <MessageCircle size={28} />
                     </a>
                   </div>
-
-                  <h3 className="text-[#D4AF37] text-xl sm:text-2xl font-bold mb-6">
-                    مواقع فروعنا
-                  </h3>
-
-                  <div className="flex justify-center mb-12">
-                    <a href="https://maps.app.goo.gl/4vfe6kpsfjyMxb1k6" target="_blank" rel="noopener noreferrer" className="bg-white/5 border border-white/10 hover:border-[#D4AF37]/50 transition-colors p-6 rounded-[2rem] flex items-center justify-between w-full max-w-sm group text-right">
-                      <div className="flex-1 text-right ml-4">
-                        <h4 className="text-xl sm:text-2xl font-bold text-white mb-2">جيلاتو لاب</h4>
-                        <p className="text-white/60 text-sm leading-relaxed">
-                          دورا - استاد دورا الدولي - <br />
-                          قرب دوار الأسرى
-                        </p>
-                      </div>
-                      <div className="w-14 h-14 rounded-2xl bg-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] group-hover:bg-[#D4AF37] group-hover:text-[#1A0B05] transition-colors shrink-0">
-                        <MapPin size={28} />
-                      </div>
-                    </a>
-                  </div>
-
-                  <p className="text-white/30 mb-8 font-medium">نحن بانتظار زيارتكم</p>
                   
                   <div className="border-t border-white/10 pt-10 pb-2 flex flex-col items-center">
                     <h4 className="text-xl sm:text-2xl font-bold text-white mb-2">جيلاتو لاب - دورا</h4>
