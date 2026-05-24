@@ -21,7 +21,7 @@ export default function UserMenu() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    fetch('/api/menu')
+    fetch(`/api/menu?t=${Date.now()}`)
       .then(r => {
         if (!r.ok) throw new Error("API not available");
         return r.json();
@@ -486,7 +486,7 @@ export default function UserMenu() {
                       </div>
 
                       <div className="flex-1 flex flex-col justify-center">
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-2 gap-2 sm:gap-4">
+                        <div className="flex flex-row justify-between items-start mb-2 gap-2 sm:gap-4 w-full">
                           <h3 className="text-lg sm:text-xl font-bold text-white transition-colors flex items-center gap-2 flex-wrap drop-shadow-md">
                             {item.name}
                             {item.isPopular && (
@@ -496,16 +496,79 @@ export default function UserMenu() {
                               </span>
                             )}
                           </h3>
-                          {item.price !== undefined && (
-                            <div className="flex items-base gap-1 bg-gradient-to-r from-[#D4AF37]/20 to-transparent pr-4 pl-3 py-1 sm:px-4 sm:py-1.5 rounded-l-full sm:rounded-full text-[#D4AF37] font-black w-fit shrink-0 border-r-2 border-[#D4AF37] shadow-inner mb-1 sm:mb-0">
-                              <span className="text-base sm:text-lg">{item.price}</span>
-                              <span className="text-xs sm:text-sm font-bold text-[#D4AF37]/80">₪</span>
-                            </div>
-                          )}
+                          
+                          {/* Helper to parse sizes/prices from desc */}
+                          {(() => {
+                            const gelatoMatch = item.description?.match(/طابة:\s*(\d+)،\s*طابتين:\s*(\d+)،\s*ثلاث\s*طابات:\s*(\d+)/);
+                            const sizeMatch = item.description?.match(/\((كبير|جماعية):\s*(\d+)\)/);
+                            
+                            if (gelatoMatch) {
+                              return (
+                                <div className="flex flex-col gap-1 items-end shrink-0">
+                                  <div className="flex items-center justify-between gap-2 bg-gradient-to-r from-[#D4AF37]/20 to-transparent pr-3 pl-2 py-0.5 rounded-l-full sm:rounded-full text-[#D4AF37] font-black w-24 border-r-2 border-[#D4AF37]">
+                                    <span className="text-xs font-bold whitespace-nowrap">طابة:</span>
+                                    <div className="flex items-baseline gap-0.5">
+                                      <span className="text-sm">{gelatoMatch[1]}</span>
+                                      <span className="text-[10px] text-[#D4AF37]/80">₪</span>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center justify-between gap-2 bg-gradient-to-r from-[#D4AF37]/20 to-transparent pr-3 pl-2 py-0.5 rounded-l-full sm:rounded-full text-[#D4AF37] font-black w-24 border-r-2 border-[#D4AF37]">
+                                    <span className="text-xs font-bold whitespace-nowrap">طابتين:</span>
+                                    <div className="flex items-baseline gap-0.5">
+                                      <span className="text-sm">{gelatoMatch[2]}</span>
+                                      <span className="text-[10px] text-[#D4AF37]/80">₪</span>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center justify-between gap-2 bg-gradient-to-r from-[#D4AF37]/20 to-transparent pr-3 pl-2 py-0.5 rounded-l-full sm:rounded-full text-[#D4AF37] font-black w-24 border-r-2 border-[#D4AF37]">
+                                    <span className="text-xs font-bold whitespace-nowrap">3 طابات:</span>
+                                    <div className="flex items-baseline gap-0.5">
+                                      <span className="text-sm">{gelatoMatch[3]}</span>
+                                      <span className="text-[10px] text-[#D4AF37]/80">₪</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            }
+                            
+                            if (sizeMatch) {
+                              const smallLabel = sizeMatch[1] === 'كبير' ? 'صغير' : 'فردية';
+                              return (
+                                <div className="flex flex-col gap-1 items-end shrink-0">
+                                  <div className="flex items-center justify-between gap-2 bg-gradient-to-r from-[#D4AF37]/20 to-transparent pr-3 pl-2 py-1 rounded-l-full sm:rounded-full text-[#D4AF37] font-black min-w-[90px] border-r-2 border-[#D4AF37]">
+                                    <span className="text-xs font-bold whitespace-nowrap">{smallLabel}:</span>
+                                    <div className="flex items-baseline gap-0.5">
+                                      <span className="text-sm">{item.price}</span>
+                                      <span className="text-[10px] text-[#D4AF37]/80">₪</span>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center justify-between gap-2 bg-gradient-to-r from-[#D4AF37]/20 to-transparent pr-3 pl-2 py-1 rounded-l-full sm:rounded-full text-[#D4AF37] font-black min-w-[90px] border-r-2 border-[#D4AF37]">
+                                    <span className="text-xs font-bold whitespace-nowrap">{sizeMatch[1]}:</span>
+                                    <div className="flex items-baseline gap-0.5">
+                                      <span className="text-sm">{sizeMatch[2]}</span>
+                                      <span className="text-[10px] text-[#D4AF37]/80">₪</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            }
+
+                            if (item.price !== undefined) {
+                              return (
+                                <div className="flex items-base gap-1 bg-gradient-to-r from-[#D4AF37]/20 to-transparent pr-4 pl-3 py-1 sm:px-4 sm:py-1.5 rounded-l-full sm:rounded-full text-[#D4AF37] font-black w-fit shrink-0 border-r-2 border-[#D4AF37] shadow-inner mb-1 sm:mb-0">
+                                  <span className="text-base sm:text-lg">{item.price}</span>
+                                  <span className="text-xs sm:text-sm font-bold text-[#D4AF37]/80">₪</span>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
+
                         </div>
                         {item.description && (
-                          <p className="text-sm sm:text-base text-white/70 font-medium leading-relaxed drop-shadow-sm">
-                            {item.description}
+                          <p className="text-sm sm:text-base text-white/70 font-medium leading-relaxed drop-shadow-sm mt-1 sm:mt-0">
+                            {item.description
+                              .replace(/\s*-\s*طابة:\s*\d+،\s*طابتين:\s*\d+،\s*ثلاث\s*طابات:\s*\d+/, "")
+                              .replace(/\s*\((كبير|جماعية):\s*\d+\)/, "")}
                           </p>
                         )}
                       </div>

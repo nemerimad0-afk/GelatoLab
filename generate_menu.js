@@ -1,0 +1,273 @@
+const fs = require('fs');
+
+const menuData = [
+  {
+    id: "gelato",
+    title: "الجيلاتو",
+    icon: "IceCream",
+    image: "https://images.unsplash.com/photo-1580915411954-282cb1b0d780?auto=format&fit=crop&q=80&w=400&h=400",
+    items: [
+      { name: "فانيلا", desc: "جيلاتو فانيلا الكلاسيكي الناعم والفني" },
+      { name: "شوكليت", desc: "جيلاتو الشوكولاتة الغنية والمميزة" },
+      { name: "فراولة", desc: "انتعاش الفراولة في جيلاتو ناعم ولذيذ" },
+      { name: "مانجا", desc: "مذاق المانجا الاستوائي في كل ملعقة" },
+      { name: "أوريو", desc: "جيلاتو ممزوج بقطع بسكويت الأوريو المحببة" },
+      { name: "لوتوس", desc: "حلاوة اللوتس المميزة في جيلاتو كريمي" },
+      { name: "فوريرو", desc: "طعم شوكولاتة الفيريرو روشيه الساحر" },
+      { name: "رفايلو", desc: "مزيج جوز الهند اللذيذ بطعم الرفايلو" },
+      { name: "سنكرز", desc: "جيلاتو السنكرز مع الفول السوداني والكراميل" },
+      { name: "بلجيكي دارك", desc: "لعشاق الشوكولاتة البلجيكية الداكنة" },
+      { name: "تيراميسو", desc: "حلوى التيراميسو الإيطالية كجيلاتو فاخر" },
+      { name: "تفاح أخضر", desc: "انتعاش التفاح الأخضر الحامض والحلو" },
+      { name: "مسفلورا", desc: "نكهة المسفلورا الاستوائية والمنعشة" },
+      { name: "ليمون ونعنع", desc: "سوربيه الليمون والنعناع للانتعاش المطلق" },
+      { name: "تشيز كيك", desc: "طعم التشيز كيك الغني في جيلاتو رائع" },
+      { name: "رمان", desc: "حلاوة الرمان وحموضته في بوظة فريدة" },
+      { name: "كندر", desc: "مذاق شوكولاتة الكندر المحبب للأطفال والكبار" },
+      { name: "فستق حلبي", desc: "نكهة الفستق الحلبي الأصيلة والفاخرة" },
+      { name: "كرز", desc: "مذاق الكرز الصيفي المنعش" },
+      { name: "أناناس", desc: "سوربيه الأناناس الاستوائي البارد" },
+      { name: "مستكة", desc: "نكهة المستكة الشرقية المميزة والأصيلة" },
+      { name: "بابل جام", desc: "طعم علكة البابل جام الممتع للحظات السعيدة" }
+    ].map((item, idx) => ({
+      id: "g" + (idx+1),
+      name: item.name,
+      description: item.desc + " - طابة: 7، طابتين: 12، ثلاث طابات: 16",
+      price: 7,
+      image: ""
+    }))
+  },
+  {
+    id: "hot_drinks",
+    title: "المشروبات الساخنة",
+    icon: "Coffee",
+    image: "https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&q=80&w=400&h=400",
+    items: [
+      { id: "hd1", name: "اسبريسو سنجل", price: 6, description: "كوب اسبريسو سنجل غني، الخيار الأمثل للتركيز", image: "" },
+      { id: "hd2", name: "اسبريسو دبل", price: 9, description: "جرعة مضاعفة من الاسبريسو النشط", image: "" },
+      { id: "hd3", name: "ميكاتو", price: 10, description: "اسبريسو ميكاتو بلذة القهوة القوية (كبير: 13)", image: "" },
+      { id: "hd4", name: "كابتشينو", price: 9, description: "مزيج القهوة والحليب والرغوة الغنية (كبير: 12)", image: "" },
+      { id: "hd5", name: "فلات وايت", price: 9, description: "قهوة فلات وايت الناعمة والموزونة (كبير: 12)", image: "" },
+      { id: "hd6", name: "امريكانو", price: 7, description: "امريكانو ساخن يمنحك النشاط (كبير: 10)", image: "" },
+      { id: "hd7", name: "كافي لاتيه", price: 9, description: "لاتيه كلاسيكي مليء بالدفء (كبير: 12)", image: "" },
+      { id: "hd8", name: "شاي لاتيه", price: 10, description: "مشروب الشاي اللاتيه المميز (كبير: 13)", image: "" },
+      { id: "hd9", name: "كراميل", price: 10, description: "مشروب ساخن بحلاوة الكراميل اللذيذة (كبير: 13)", image: "" },
+      { id: "hd10", name: "فرنش فانيلا", price: 9, description: "قهوة بنكهة الفانيلا الفرنسية الرقيقة (كبير: 12)", image: "" },
+      { id: "hd11", name: "فرنش بندق", price: 9, description: "لذة مذاق البندق في كوب دافئ (كبير: 12)", image: "" },
+      { id: "hd12", name: "لوتوس", price: 11, description: "مشروب اللوتس الساخن للباحثين عن الدفء (كبير: 14)", image: "" },
+      { id: "hd13", name: "موكا", price: 12, description: "مزيج القهوة مع الشوكولاتة المريحة (كبير: 15)", image: "" },
+      { id: "hd14", name: "وايت موكا", price: 12, description: "الشوكولاتة البيضاء الساخنة مع القهوة (كبير: 15)", image: "" },
+      { id: "hd15", name: "سحلب", price: 9, description: "مشروب السحلب الشتوي الأصيل والدافئ (كبير: 12)", image: "" },
+      { id: "hd16", name: "نسكافيه", price: 9, description: "القهوة السريعة الكلاسيكية المحببة (كبير: 12)", image: "" },
+      { id: "hd17", name: "زهورات مكس", price: 6, description: "مشروب الأعشاب والزهورات للاسترخاء", image: "" },
+      { id: "hd18", name: "شاي أطعمة", price: 5, description: "شاي ساخن بنكهات مختلفة", image: "" },
+      { id: "hd19", name: "إضافة أي طعم", price: 2, description: "إضافة النكهة المفضلة بأي مشروب", image: "" }
+    ]
+  },
+  {
+    id: "cold_drinks",
+    title: "المشروبات الباردة",
+    icon: "CupSoda",
+    image: "https://images.unsplash.com/photo-1546889813-f9a888b5774a?auto=format&fit=crop&q=80&w=400&h=400",
+    items: [
+      { id: "cd1", name: "ايس كافيه", price: 8, description: "قهوة باردة منعشة للمزاج الرايق (كبير: 11)", image: "" },
+      { id: "cd2", name: "ايس امريكانو", price: 8, description: "امريكانو بالثلج لمن يبحث عن الانتعاش والنشاط (كبير: 11)", image: "" },
+      { id: "cd3", name: "ايس سبانيش لاتيه", price: 10, description: "سبانيش لاتيه مثلجة غنية وحلوة المذاق (كبير: 13)", image: "" },
+      { id: "cd4", name: "ايس لاتيه", price: 10, description: "اللاتيه الكلاسيكي يعاد تقديمه بارداً ومثلجاً (كبير: 13)", image: "" },
+      { id: "cd5", name: "ايس مسفلورة", price: 8, description: "مشروب مثلج بنكهة المسفلورا الاستوائية (كبير: 11)", image: "" },
+      { id: "cd6", name: "اي جوز الهند", price: 10, description: "انتعاش جوز الهند في مشروب صيفي رائع (كبير: 13)", image: "" },
+      { id: "cd7", name: "ايس تي خوخ", price: 8, description: "شاي الخوخ المثلج لإرواء العطش (كبير: 11)", image: "" },
+      { id: "cd8", name: "بيناكولادا", price: 10, description: "مشروب البيناكولادا الاستوائي بأناناس وجوز هند (كبير: 13)", image: "" },
+      { id: "cd9", name: "ايس أناناس", price: 10, description: "أناناس بارد ومنعش للحظات الصيفية (كبير: 13)", image: "" },
+      { id: "cd10", name: "ايس فراولة", price: 8, description: "مشروب الفراولة البارد والمليء بالطاقة (كبير: 11)", image: "" }
+    ]
+  },
+  {
+    id: "waffles",
+    title: "الوفل",
+    icon: "CakeSlice",
+    image: "https://images.unsplash.com/photo-1562376552-0d160a2f238d?auto=format&fit=crop&q=80&w=400&h=400",
+    items: [
+      { id: "w1", name: "وافل كلاسيك", price: 14, description: "الوافل الكلاسيكي المقرمش مع السيرب اللذيذ", image: "" },
+      { id: "w2", name: "وافل أوريو", price: 16, description: "وافل مغطى بفتات بسكويت الأوريو الشهي والصلصات", image: "" },
+      { id: "w3", name: "وافل لوتس", price: 16, description: "وافل مليء بطعم زبدة اللوتس الذائبة والمميزة", image: "" },
+      { id: "w4", name: "وافل فستق حلبي", price: 18, description: "تغطية غنية بكريمة الفستق الحلبي الفاخرة", image: "" }
+    ]
+  },
+  {
+    id: "crepes",
+    title: "الكريب",
+    icon: "CakeSlice",
+    image: "https://images.unsplash.com/photo-1519676867240-f03562e64548?auto=format&fit=crop&q=80&w=400&h=400",
+    items: [
+      { id: "cr1", name: "كريب كلاسيك", price: 14, description: "الكريب الفرنسي الرقيق والمثالي للتحلية", image: "" },
+      { id: "cr2", name: "كريب لوتوس", price: 16, description: "كريب ناعم مغطى بزبدة اللوتس اللذيذة", image: "" },
+      { id: "cr3", name: "كريب فستق حلبي", price: 18, description: "كريب محشو ومطلي بكريمة الفستق الغنية", image: "" },
+      { id: "cr4", name: "كريب أوريو", price: 16, description: "تداخل رائع بين الكريب الرقيق وهشاشة الأوريو", image: "" },
+      { id: "cr5", name: "فوتشيني كريب", price: 14, description: "شرائط الكريب المقطعة كالفوتشيني مع الصلصات", image: "" },
+      { id: "cr6", name: "كريب جيلاتو لاب محشي", price: 20, description: "كريبنا الخاص المحشو بعناية ومذاق فريد", image: "" }
+    ]
+  },
+  {
+    id: "affogato",
+    title: "أفوكاتو جيلاتو",
+    icon: "Coffee",
+    image: "https://images.unsplash.com/photo-1579954115545-a95591f28bfc?auto=format&fit=crop&q=80&w=400&h=400",
+    items: [
+      { id: "af1", name: "أفوكاتو كلاسيك", price: 12, description: "توازن رائع بين الاسبريسو الساخن والجيلاتو", image: "" },
+      { id: "af2", name: "أفوكاتو نوتيلا", price: 14, description: "نوتيلا غنية مضيفة السحر لطبق الأفوكاتو", image: "" },
+      { id: "af3", name: "أفوكاتو فوريرو", price: 16, description: "أفوكاتو مميز مع نكهة الفريرو روشيه", image: "" },
+      { id: "af4", name: "أفوكاتو فستق حلبي", price: 16, description: "الفستق الحلبي يعانق القهوة في حلوى إيطالية مميزة", image: "" },
+      { id: "af5", name: "أفوكاتو لوتوس", price: 16, description: "اللوتس يضفي نكهة الكراميل المقرمش البديعة", image: "" },
+      { id: "af6", name: "أفوكاتو تيراميسو", price: 16, description: "لمسة التيراميسو الساحرة ممزوجة بأفوكاتو لذيذ", image: "" }
+    ]
+  },
+  {
+    id: "pancakes",
+    title: "البان كيك / فشافيش",
+    icon: "CakeSlice",
+    image: "https://images.unsplash.com/photo-1554520735-0a6b8b6ce8b7?auto=format&fit=crop&q=80&w=400&h=400",
+    items: [
+      { id: "pc1", name: "بان كيك كاسة", price: 8, description: "قطع البان كيك المصغرة في كأس مليء بالسعادة", image: "" },
+      { id: "pc2", name: "بان كيك كلاسيك", price: 12, description: "شرائح البان كيك الذهبية التقليدية الشهية", image: "" },
+      { id: "pc3", name: "بان كيك فستق حلبي", price: 16, description: "بان كيك مزين بكريمة ومكسرات الفستق الحلبي", image: "" },
+      { id: "pc4", name: "بان كيك أوريو", price: 14, description: "بان كيك مغطى بصوص الشوكولاتة وحبات الأوريو", image: "" },
+      { id: "pc5", name: "بان كيك جيلاتو لاب محشي", price: 18, description: "البان كيك الخاص بمحشوات جيلاتو لاب الإبداعية", image: "" }
+    ]
+  },
+  {
+    id: "smoothies",
+    title: "سموذي",
+    icon: "CupSoda",
+    image: "https://images.unsplash.com/photo-1553530666-ba11a7746416?auto=format&fit=crop&q=80&w=400&h=400",
+    items: [
+      { id: "sm1", name: "فراولة", price: 12, description: "سموذي الفراولة الناعم والغني بالفيتامينات", image: "" },
+      { id: "sm2", name: "مانجا", price: 12, description: "سموذي المانجا المنعش الذي يبعث على البرودة", image: "" },
+      { id: "sm3", name: "مكس بيري", price: 12, description: "مزيج منعش من التوتيات اللذيذة", image: "" },
+      { id: "sm4", name: "حامض وحلو", price: 12, description: "توازن مثالي بين الحموضة المنعشة والحلاوة", image: "" },
+      { id: "sm5", name: "أناناس", price: 12, description: "سموذي الأناناس المركز بطعم الصيف", image: "" },
+      { id: "sm6", name: "سموذي تروبيكال", price: 14, description: "خلطة استوائية من الفواكه الاستوائية المتنوعة", image: "" }
+    ]
+  },
+  {
+    id: "fresh_drinks",
+    title: "المشروبات الطازجة",
+    icon: "CupSoda",
+    image: "https://images.unsplash.com/photo-1600271886742-f049cd451b06?auto=format&fit=crop&q=80&w=400&h=400",
+    items: [
+      { id: "fd1", name: "ليموناضة", price: 9, description: "الليموناضة الطازجة لترطيب يومك (كبير: 12)", image: "" },
+      { id: "fd2", name: "ليمون ونعنع", price: 11, description: "مشروب الليمون والنعناع المنشط للجسم والروح (كبير: 14)", image: "" },
+      { id: "fd3", name: "برتقال", price: 11, description: "عصير البرتقال الطازج بدون إضافات (كبير: 14)", image: "" },
+      { id: "fd4", name: "رمان (موسمي)", price: 12, description: "عصير الرمان الطازج واللذيذ حسب الموسم (كبير: 15)", image: "" }
+    ]
+  },
+  {
+    id: "soft_drinks",
+    title: "مشروبات",
+    icon: "CupSoda",
+    image: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&q=80&w=400&h=400",
+    items: [
+      { id: "sd1", name: "سبرايت", price: 5, description: "سبرايت مثلج ومنعش", image: "" },
+      { id: "sd2", name: "XL", price: 7, description: "مشروب الطاقة XL لباقة من النشاط", image: "" },
+      { id: "sd3", name: "صودا", price: 7, description: "مشروب الصودا المكربن", image: "" },
+      { id: "sd4", name: "مياه معدنية صغير", price: 3, description: "عبوة مياه معدنية نقية", image: "" }
+    ]
+  },
+  {
+    id: "mojitos",
+    title: "الموهيتو",
+    icon: "CupSoda",
+    image: "https://images.unsplash.com/photo-1551782450-a2132b4ba21d?auto=format&fit=crop&q=80&w=400&h=400",
+    items: [
+      { id: "mj1", name: "ديتوكس صودا وخيار", price: 10, description: "موهيتو ديتوكس الصحي والمنعش بالخيار", image: "" },
+      { id: "mj2", name: "موهيتو ليمون", price: 10, description: "موهيتو الليمون الكلاسيكي بالحموضة المنشطة", image: "" },
+      { id: "mj3", name: "موهيتو بطيخ", price: 10, description: "موهيتو البطيخ المثلج يعطي طعم الصيف", image: "" },
+      { id: "mj4", name: "موهيتو رمان", price: 10, description: "موهيتو الرمان الغني بطعم وحلاوة الفاكهة", image: "" },
+      { id: "mj5", name: "موهيتو كيوي", price: 10, description: "موهيتو بنكهة ولون الكيوي الزاهي", image: "" },
+      { id: "mj6", name: "موهيتو ببل جام كاندي", price: 10, description: "مشروب مسلي بنكهة غزل البنات والعلكة", image: "" },
+      { id: "mj7", name: "موهيتو بلو أناناس", price: 10, description: "أناناس بلمحات الموهيتو الأزرق اللطيف", image: "" },
+      { id: "mj8", name: "موهيتو فواكه إستوائية", price: 10, description: "توليفة استوائية من الفواكه الاستوائية المنعشة", image: "" },
+      { id: "mj9", name: "موهيتو تفاح أخضر", price: 10, description: "مزيج منعش من التفاح الأخضر والنعناع", image: "" },
+      { id: "mj10", name: "موهيتو جيلاتو لاب", price: 12, description: "خلطتنا السرية الساحرة للموهيتو", image: "" },
+      { id: "mj11", name: "إضافة xl", price: 4, description: "إضافة مشروب طاقة", image: "" }
+    ]
+  },
+  {
+    id: "milkshakes",
+    title: "ملك شيك",
+    icon: "CupSoda",
+    image: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&q=80&w=400&h=400",
+    items: [
+      { id: "ms1", name: "ملك شيك شوكليت", price: 14, description: "ميلك شيك الشوكولاتة الكثيف واللذيذ جداً", image: "" },
+      { id: "ms2", name: "ملك شيك فانيلا", price: 14, description: "ميلك شيك بنكهة الفانيلا الكلاسيكية الرائعة", image: "" },
+      { id: "ms3", name: "ملك شيك فراولة", price: 15, description: "ميلك شيك الفراولة بلون وردي مبهج ومذاق يجنن", image: "" },
+      { id: "ms4", name: "ملك شيك أوريو", price: 15, description: "تجربة ميلك شيك مقرمشة بطعم الأوريو", image: "" },
+      { id: "ms5", name: "ملك شيك لوتوس", price: 15, description: "ميلك شيك زبدة اللوتس اللذيذ والفريد", image: "" },
+      { id: "ms6", name: "ملك شيك فوريرو", price: 15, description: "ميلك شيك شوكولاتة الفريرو روشيه مع البندق", image: "" },
+      { id: "ms7", name: "ملك شيك جيلاتو لاب", price: 18, description: "تحضير خاص من جيلاتولاب بنكهة ملكية", image: "" },
+      { id: "ms8", name: "ملك شيك دبي بالفستق الحلبي", price: 16, description: "النكهة الإماراتية الفستقية في ميلك شيك بارد", image: "" }
+    ]
+  },
+  {
+    id: "gelato_roma_cake",
+    title: "جلاتو روما كيك",
+    icon: "CakeSlice",
+    image: "https://images.unsplash.com/photo-1571115177098-24ec42ed204d?auto=format&fit=crop&q=80&w=400&h=400",
+    items: [
+      { id: "gc1", name: "فستق حلبي", price: 14, description: "كيكة الجيلاتو المغطاة بطبقات الفستق الرائعة", image: "" },
+      { id: "gc2", name: "تيراميسو", price: 14, description: "كيك التيراميسو بالجيلاتو الإيطالي المذهل", image: "" },
+      { id: "gc3", name: "دبي شوكلت", price: 14, description: "كيك الجيلاتو بروح شوكولاتة دبي الفخمة", image: "" },
+      { id: "gc4", name: "تريكولادا جيلاتو لاب", price: 16, description: "خلطتنا الساحرة من الجيلاتو والكيك الفاخر", image: "" }
+    ]
+  },
+  {
+    id: "frozen_yogurt",
+    title: "فروزن يوغورت",
+    icon: "IceCream",
+    image: "https://images.unsplash.com/photo-1549395156-e0c1fe6fc7a5?auto=format&fit=crop&q=80&w=400&h=400",
+    items: [
+      { id: "fy1", name: "فراولة", price: 6, description: "فروزن يوغورت بنكهة الفراولة الطازجة", image: "" },
+      { id: "fy2", name: "موز", price: 9, description: "مذاق الموز الغني والمشبع", image: "" },
+      { id: "fy3", name: "أناناس", price: 10, description: "انتعاش الأناناس في علبة فروزن يوغورت (جماعية: 13)", image: "" },
+      { id: "fy4", name: "مانجا", price: 9, description: "يوغورت المانجا البارد للحظات الاستوائية (جماعية: 12)", image: "" },
+      { id: "fy5", name: "مسفلورا", price: 9, description: "فروزن يوغورت المسفلورا اللذيذ (جماعية: 12)", image: "" },
+      { id: "fy6", name: "شوكليت فليك حليب", price: 7, description: "يوغورت بالشوكولاتة بالحليب وندف الفليك (جماعية: 10)", image: "" },
+      { id: "fy7", name: "شوكليت فليك أبيض", price: 9, description: "يوغورت بالشوكولاتة البيضاء اللذيذة (جماعية: 12)", image: "" },
+      { id: "fy8", name: "تمر", price: 10, description: "حلاوة التمر الشرقية المميزة والمغذية (جماعية: 13)", image: "" },
+      { id: "fy9", name: "مكس بيري", price: 10, description: "مزيج يوغورت وتوتيات الغابات اللذيذة (جماعية: 13)", image: "" },
+      { id: "fy10", name: "بلوبيري", price: 9, description: "توت بلوبيري مع يوغورت سلس ومنعش (جماعية: 12)", image: "" },
+      { id: "fy11", name: "بلاك بيري", price: 9, description: "نكهة فريدة ومدهشة من البلاك بيري (جماعية: 12)", image: "" },
+      { id: "fy12", name: "فواكه موسمية", price: 11, description: "فواكه طازجة تقطع فوق الفروزن يوغورت (جماعية: 14)", image: "" },
+      { id: "fya1", name: "إضافة سبرنكلز", price: 2, description: "رشة سبرنكلز ملونة للزينة", image: "" },
+      { id: "fya2", name: "إضافة لوتوس", price: 2, description: "بسكويت لوتس مطحون أو زبدة", image: "" },
+      { id: "fya3", name: "إضافة مكسرات", price: 2, description: "مكسرات متنوعة لزيادة القرمشة", image: "" },
+      { id: "fya4", name: "إضافة أوريو", price: 2, description: "قطع الأوريو اللذيذة", image: "" },
+      { id: "fya5", name: "سيروب شوكليت", price: 2, description: "صوص الشوكولاتة اللذيذ", image: "" },
+      { id: "fya6", name: "سيروب فراولة", price: 2, description: "صوص الفراولة الحلو", image: "" },
+      { id: "fya7", name: "سيروب كراميل حليب نوجا", price: 2, description: "صوص فاخر بنكهة الكراميل وحليب النوجا", image: "" }
+    ]
+  }
+];
+
+const fileContent = \`export interface MenuItem {
+  id: string;
+  name: string;
+  price: number;
+  description?: string;
+  image?: string;
+  isPopular?: boolean;
+}
+
+export interface MenuCategory {
+  id: string;
+  title: string;
+  icon?: string;
+  image?: string;
+  items: MenuItem[];
+}
+
+export const menuData: MenuCategory[] = \${JSON.stringify(menuData, null, 2)};
+\`;
+
+fs.writeFileSync('src/data.ts', fileContent);
+console.log("data.ts written successfully.");

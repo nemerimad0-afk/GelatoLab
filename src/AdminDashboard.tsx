@@ -49,7 +49,7 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    fetch('/api/menu')
+    fetch(`/api/menu?t=${Date.now()}`)
       .then(r => {
         if (!r.ok) throw new Error("API not available");
         return r.json();

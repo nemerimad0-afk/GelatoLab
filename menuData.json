@@ -1,21 +1,4 @@
-export interface MenuItem {
-  id: string;
-  name: string;
-  price: number;
-  description?: string;
-  image?: string;
-  isPopular?: boolean;
-}
-
-export interface MenuCategory {
-  id: string;
-  title: string;
-  icon?: string;
-  image?: string;
-  items: MenuItem[];
-}
-
-export const menuData: MenuCategory[] = [
+[
   {
     "id": "gelato",
     "title": "الجيلاتو",
@@ -1024,4 +1007,4 @@ export const menuData: MenuCategory[] = [
       }
     ]
   }
-];
+]
