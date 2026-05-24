@@ -3,6 +3,11 @@ import { Plus, Edit2, Trash2, Save, Image as ImageIcon, LogOut, ChevronDown, Che
 import { MenuCategory, MenuItem } from "./data";
 
 export default function AdminDashboard() {
+  const [token, setToken] = useState<string | null>(localStorage.getItem("adminToken"));
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const [menu, setMenu] = useState<MenuCategory[]>([]);
   const [settings, setSettings] = useState({ musicUrl: "" });
   const [saving, setSaving] = useState(false);
@@ -51,19 +56,25 @@ export default function AdminDashboard() {
       // Try to save to server first
       const res = await fetch("/api/settings", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify(settings)
       });
 
       await fetch("/api/menu", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify(menu)
       });
       
       localStorage.setItem("menuData", JSON.stringify(menu));
       localStorage.setItem("settingsData", JSON.stringify(settings));
-      alert("تم الحفظ بنجاح! تم حفظ البيانات محلياً أيضاً.");
+      alert("تم الحفظ بنجاح! تم حفظ البيانات للتصدير أيضاً.");
     } catch (e) {
       // Fallback to local storage
       localStorage.setItem("menuData", JSON.stringify(menu));
@@ -140,6 +151,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch("/api/upload", {
         method: "POST",
+        headers: { "Authorization": `Bearer ${token}` },
         body: formData
       });
       const data = await res.json();
@@ -159,10 +171,83 @@ export default function AdminDashboard() {
     setExpandedCats({ ...expandedCats, [id]: !expandedCats[id] });
   };
 
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (data.token) {
+        setToken(data.token);
+        localStorage.setItem("adminToken", data.token);
+      } else {
+        alert("Invalid credentials");
+      }
+    } catch (e) {
+      alert("Error logging in");
+    }
+    setLoading(false);
+  };
+
+  const handleLogout = () => {
+    setToken(null);
+    localStorage.removeItem("adminToken");
+  };
+
+  if (!token) {
+    return (
+      <div className="min-h-screen bg-[#FFFBF5] text-[#5E2D14] font-['Cairo'] flex items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md text-right border border-[#EFE6DD]">
+          <h2 className="text-2xl font-bold mb-6 text-center">دخول الإدارة</h2>
+          <form onSubmit={handleLogin} className="flex flex-col gap-4">
+            <div>
+              <label className="block font-bold mb-2 text-sm">اسم المستخدم</label>
+              <input
+                type="text"
+                autoComplete="off"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#D4AF37] outline-none"
+                required
+              />
+            </div>
+            <div>
+              <label className="block font-bold mb-2 text-sm">كلمة المرور</label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#D4AF37] outline-none"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-4 w-full bg-[#5E2D14] text-white py-3 rounded-lg font-bold hover:bg-[#8B4B27] transition-colors"
+            >
+              {loading ? "جاري الدخول..." : "تسجيل الدخول"}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#FFFBF5] text-[#5E2D14] font-['Cairo'] pb-24 text-right" dir="rtl">
       <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-md border-b border-[#EFE6DD] px-4 py-4 flex justify-between items-center top-bar">
-        <div className="w-16"></div>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 text-red-600 hover:text-red-700 font-bold"
+        >
+          <LogOut size={18} />
+          خروج
+        </button>
         <h1 className="text-xl sm:text-2xl font-bold">لوحة التحكم السريعة</h1>
         <button
           onClick={handleSave}
@@ -223,6 +308,15 @@ export default function AdminDashboard() {
                   }
                 }}
               >
+                <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden shrink-0 relative border">
+                  {cat.image ? (
+                    <img src={cat.image} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-300">
+                      <ImageIcon />
+                    </div>
+                  )}
+                </div>
                 <div className="flex-1 flex flex-col gap-3 w-full">
                   <input
                     type="text"
@@ -285,11 +379,10 @@ export default function AdminDashboard() {
 
                         <div className="flex gap-4">
                           <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden shrink-0 flex items-center justify-center relative border group-hover:border-[#D4AF37]/50">
-                            {item.image ? (
-                              <img src={item.image} className="w-full h-full object-cover" />
-                            ) : (
-                              <ImageIcon className="text-gray-300" />
-                            )}
+                            <img 
+                              src={item.image || `https://picsum.photos/seed/${item.id}/300/300`} 
+                              className="w-full h-full object-cover" 
+                            />
                             {/* Upload overlay */}
                             <label className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity">
                               <span className="text-white text-xs font-bold px-2 py-1 text-center">تغيير الصورة</span>

@@ -82,6 +82,28 @@ app.get('/api/menu', (req, res) => {
 app.put('/api/menu', authenticateToken, (req, res) => {
   try {
     fs.writeFileSync(DATA_FILE, JSON.stringify(req.body, null, 2));
+
+    // Also update src/data.ts for static exports
+    const dataTsContent = `export interface MenuItem {
+  id: string;
+  name: string;
+  price: number;
+  description?: string;
+  image?: string;
+}
+
+export interface MenuCategory {
+  id: string;
+  title: string;
+  icon?: string;
+  image?: string;
+  items: MenuItem[];
+}
+
+export const menuData: MenuCategory[] = ${JSON.stringify(req.body, null, 2)};
+`;
+    fs.writeFileSync(path.join(process.cwd(), 'src', 'data.ts'), dataTsContent);
+
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update menu data' });
@@ -100,6 +122,11 @@ app.get('/api/settings', (req, res) => {
 app.put('/api/settings', authenticateToken, (req, res) => {
   try {
     fs.writeFileSync(SETTINGS_FILE, JSON.stringify(req.body, null, 2));
+
+    // Also update src/settingsData.ts for static exports
+    const settingsContent = `export const settingsData = ${JSON.stringify(req.body, null, 2)};\n`;
+    fs.writeFileSync(path.join(process.cwd(), 'src', 'settingsData.ts'), settingsContent);
+
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update settings data' });

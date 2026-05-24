@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Coffee, CupSoda, CakeSlice, Utensils, ChevronUp, ChevronRight, ChevronLeft, Volume2, VolumeX, Sparkles, IceCream, Instagram, Facebook, MessageCircle, MapPin } from "lucide-react";
 import { MenuCategory, menuData as localMenuData } from "./data";
+import { settingsData as localSettingsData } from "./settingsData";
 
 const iconMap: Record<string, React.ReactNode> = {
   Coffee: <Coffee size={20} />,
@@ -29,7 +30,12 @@ export default function UserMenu() {
       .then(data => setMenuData(data))
       .catch(e => {
         console.error("Could not fetch menu data from server, using local fallback", e);
-        setMenuData(localMenuData);
+        const stored = localStorage.getItem("menuData");
+        if (stored) {
+          setMenuData(JSON.parse(stored));
+        } else {
+          setMenuData(localMenuData);
+        }
       });
 
     fetch('/api/settings')
@@ -40,7 +46,15 @@ export default function UserMenu() {
       .then(data => {
         if(data.musicUrl) setSettings(data);
       })
-      .catch(e => console.error("Could not fetch settings from server", e));
+      .catch(e => {
+        console.error("Could not fetch settings from server", e);
+        const stored = localStorage.getItem("settingsData");
+        if (stored) {
+          setSettings(JSON.parse(stored));
+        } else {
+          setSettings(localSettingsData);
+        }
+      });
   }, []);
 
   // Auto-hide splash after 5 seconds
