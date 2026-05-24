@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Coffee, CupSoda, CakeSlice, Utensils, ChevronUp, ChevronRight, ChevronLeft, Volume2, VolumeX, Sparkles, IceCream, Instagram, Facebook, MessageCircle, MapPin } from "lucide-react";
-import { MenuCategory } from "./data";
+import { MenuCategory, menuData as localMenuData } from "./data";
 
 const iconMap: Record<string, React.ReactNode> = {
   Coffee: <Coffee size={20} />,
@@ -22,16 +22,25 @@ export default function UserMenu() {
 
   useEffect(() => {
     fetch('/api/menu')
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error("API not available");
+        return r.json();
+      })
       .then(data => setMenuData(data))
-      .catch(e => console.error("Could not fetch menu data", e));
+      .catch(e => {
+        console.error("Could not fetch menu data from server, using local fallback", e);
+        setMenuData(localMenuData);
+      });
 
     fetch('/api/settings')
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error("API not available");
+        return r.json();
+      })
       .then(data => {
         if(data.musicUrl) setSettings(data);
       })
-      .catch(e => console.error("Could not fetch settings", e));
+      .catch(e => console.error("Could not fetch settings from server", e));
   }, []);
 
   // Auto-hide splash after 5 seconds
