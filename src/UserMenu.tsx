@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Coffee, CupSoda, CakeSlice, Utensils, ChevronUp, ChevronRight, ChevronLeft, Volume2, VolumeX, Sparkles, IceCream, Instagram, Facebook, MessageCircle, MapPin } from "lucide-react";
 import { MenuCategory, menuData as localMenuData } from "./data";
@@ -13,8 +13,7 @@ const iconMap: Record<string, React.ReactNode> = {
 };
 
 export default function UserMenu() {
-  const [menuData, setMenuData] = useState<MenuCategory[]>([]);
-  const [settings, setSettings] = useState({ musicUrl: "https://cdn.pixabay.com/audio/2022/11/22/audio_febc508520.mp3" });
+  const [menuData, setMenuData] = useState<MenuCategory[]>(localMenuData);
   const [showSplash, setShowSplash] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<MenuCategory | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -29,33 +28,35 @@ export default function UserMenu() {
       })
       .then(data => setMenuData(data))
       .catch(e => {
-        console.error("Could not fetch menu data from server, using local fallback", e);
-        const stored = localStorage.getItem("menuData");
-        if (stored) {
-          setMenuData(JSON.parse(stored));
-        } else {
-          setMenuData(localMenuData);
-        }
-      });
-
-    fetch('/api/settings')
-      .then(r => {
-        if (!r.ok) throw new Error("API not available");
-        return r.json();
-      })
-      .then(data => {
-        if(data.musicUrl) setSettings(data);
-      })
-      .catch(e => {
-        console.error("Could not fetch settings from server", e);
-        const stored = localStorage.getItem("settingsData");
-        if (stored) {
-          setSettings(JSON.parse(stored));
-        } else {
-          setSettings(localSettingsData);
-        }
+        console.error("Could not fetch menu data from server, using exported data");
+        setMenuData(localMenuData);
       });
   }, []);
+
+  // Handle auto-playing music once splash disappears
+  useEffect(() => {
+    if (!showSplash && audioRef.current && !isMusicPlaying) {
+      const playOnInteract = () => {
+         if (audioRef.current) {
+            audioRef.current.play().then(() => setIsMusicPlaying(true)).catch(() => {});
+         }
+         document.removeEventListener('click', playOnInteract);
+         document.removeEventListener('scroll', playOnInteract);
+         document.removeEventListener('touchstart', playOnInteract);
+      };
+      
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+         playPromise.then(() => {
+            setIsMusicPlaying(true);
+         }).catch(() => {
+            document.addEventListener('click', playOnInteract);
+            document.addEventListener('scroll', playOnInteract);
+            document.addEventListener('touchstart', playOnInteract);
+         });
+      }
+    }
+  }, [showSplash]);
 
   // Auto-hide splash after 5 seconds
   useEffect(() => {
@@ -67,63 +68,12 @@ export default function UserMenu() {
     }
   }, [showSplash]);
 
-  // Handle auto-playing music when splash disappears
-  useEffect(() => {
-    if (!showSplash && audioRef.current && !isMusicPlaying) {
-      const playPromise = audioRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise.then(() => {
-          audioRef.current!.muted = false;
-          setIsMusicPlaying(true);
-        }).catch((e) => {
-          console.log("Auto-play blocked by browser, waiting for user interaction:", e);
-          const playOnInteract = () => {
-             if (audioRef.current) {
-                audioRef.current.muted = false;
-                audioRef.current.play().then(() => setIsMusicPlaying(true)).catch(() => {});
-             }
-             document.removeEventListener('click', playOnInteract);
-             document.removeEventListener('scroll', playOnInteract);
-             document.removeEventListener('touchstart', playOnInteract);
-          };
-          document.addEventListener('click', playOnInteract);
-          document.addEventListener('scroll', playOnInteract);
-          document.addEventListener('touchstart', playOnInteract);
-        });
-      }
-    }
-  }, [showSplash]);
-
-  // Initialize audio
-  useEffect(() => {
-    // Background music from settings
-    if (audioRef.current && isMusicPlaying) {
-      // Pause old if playing
-      audioRef.current.pause();
-    }
-    
-    audioRef.current = new Audio(settings.musicUrl);
-    audioRef.current.loop = true;
-    audioRef.current.volume = 1;
-    
-    if (!showSplash && isMusicPlaying) {
-      audioRef.current.play().catch(e => console.log("Audio play failed:", e));
-    }
-    
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-    };
-  }, [settings.musicUrl]);
-
   const toggleMusic = () => {
     if (!audioRef.current) return;
     if (isMusicPlaying) {
       audioRef.current.pause();
     } else {
-      audioRef.current.muted = false;
-      audioRef.current.play().catch(e => console.log("Audio play failed:", e));
+      audioRef.current.play().catch(() => {});
     }
     setIsMusicPlaying(!isMusicPlaying);
   };
@@ -142,6 +92,12 @@ export default function UserMenu() {
 
   return (
     <>
+      <audio
+        ref={audioRef}
+        src="https://www.image2url.com/r2/default/audio/1779605277020-c303c35e-9a3a-48b9-9632-7122a3d4f357.mp3"
+        loop
+        preload="auto"
+      />
       <AnimatePresence>
         {showSplash && (
           <motion.div

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2, Save, Image as ImageIcon, LogOut, ChevronDown, ChevronUp } from "lucide-react";
-import { MenuCategory, MenuItem } from "./data";
+import { MenuCategory, MenuItem, menuData as localMenuData } from "./data";
 
 export default function AdminDashboard() {
   const [token, setToken] = useState<string | null>(localStorage.getItem("adminToken"));
@@ -8,8 +8,7 @@ export default function AdminDashboard() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [menu, setMenu] = useState<MenuCategory[]>([]);
-  const [settings, setSettings] = useState({ musicUrl: "" });
+  const [menu, setMenu] = useState<MenuCategory[]>(localMenuData);
   const [saving, setSaving] = useState(false);
 
   // For UI expansion state
@@ -32,37 +31,11 @@ export default function AdminDashboard() {
           import('./data').then(mod => setMenu(mod.menuData)).catch(err => console.error(err));
         }
       });
-
-    fetch('/api/settings')
-      .then(r => {
-        if (!r.ok) throw new Error("API not available");
-        return r.json();
-      })
-      .then(data => {
-        if(data.musicUrl) setSettings(data);
-      })
-      .catch(e => {
-        console.error("Local fallback for settings");
-        const localSettings = localStorage.getItem("settingsData");
-        if (localSettings) {
-          setSettings(JSON.parse(localSettings));
-        }
-      });
   }, []);
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Try to save to server first
-      const res = await fetch("/api/settings", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(settings)
-      });
-
       await fetch("/api/menu", {
         method: "PUT",
         headers: {
@@ -73,12 +46,10 @@ export default function AdminDashboard() {
       });
       
       localStorage.setItem("menuData", JSON.stringify(menu));
-      localStorage.setItem("settingsData", JSON.stringify(settings));
       alert("تم الحفظ بنجاح! تم حفظ البيانات للتصدير أيضاً.");
     } catch (e) {
       // Fallback to local storage
       localStorage.setItem("menuData", JSON.stringify(menu));
-      localStorage.setItem("settingsData", JSON.stringify(settings));
       alert("تم الحفظ في المتصفح فقط (بدون خادم).");
     }
     setSaving(false);
@@ -260,32 +231,6 @@ export default function AdminDashboard() {
       </div>
 
       <div className="max-w-4xl mx-auto p-4 mt-6">
-        <div className="mb-6 bg-white border border-[#EFE6DD] shadow-md rounded-2xl p-6">
-          <h2 className="text-xl font-bold mb-4">إعدادات النظام</h2>
-          <div className="flex flex-col gap-2">
-            <label className="font-bold text-sm">موسيقى الخلفية (رابط مفضل أو رفع ملف):</label>
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={settings.musicUrl}
-                onChange={(e) => setSettings({ ...settings, musicUrl: e.target.value })}
-                placeholder="https://..."
-                className="p-2 border rounded-lg flex-1 outline-none focus:ring-2 focus:ring-[#D4AF37]"
-                dir="ltr"
-              />
-              <label className="bg-gray-200 p-2 rounded-lg cursor-pointer hover:bg-gray-300 transition-colors flex items-center gap-2">
-                <span className="text-sm font-bold truncate hidden sm:block">ارفع ملف صوتي</span>
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="audio/*"
-                  onChange={(e) => handleFileUpload(e, (url) => setSettings({ ...settings, musicUrl: url }))}
-                />
-              </label>
-            </div>
-          </div>
-        </div>
-
         <div className="mb-6 flex justify-end">
           <button
             onClick={addCategory}

@@ -16,7 +16,7 @@ const SETTINGS_FILE = path.join(process.cwd(), "settings.json");
 const UPLOADS_DIR = path.join(process.cwd(), "public", "uploads");
 
 const initialSettings = {
-  musicUrl: "https://cdn.pixabay.com/audio/2022/11/22/audio_febc508520.mp3"
+  musicUrl: "https://www.image2url.com/r2/default/audio/1779605277020-c303c35e-9a3a-48b9-9632-7122a3d4f357.mp3"
 };
 
 if (!fs.existsSync(UPLOADS_DIR)) {
